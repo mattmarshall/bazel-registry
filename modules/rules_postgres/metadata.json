@@ -1,0 +1,16 @@
+{
+  "homepage": "https://github.com/mattmarshall/rules_postgres",
+  "maintainers": [
+    {
+      "name": "Matt Marshall",
+      "github": "mattmarshall"
+    }
+  ],
+  "repository": [
+    "github:mattmarshall/rules_postgres"
+  ],
+  "versions": [
+    "0.1.0"
+  ],
+  "yanked_versions": {}
+}
