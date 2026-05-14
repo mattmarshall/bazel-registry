@@ -1,5 +1,5 @@
 {
-  "integrity": "sha256-/frdIh/3aQDtqE2nFhWDrmTgA/ExFdiw14k2SkA0QYQ=",
+  "integrity": "sha256-DF2Ry/QrmSeisrdyHVvlSrrmCxzW66RrT8tisJ3wpj8=",
   "strip_prefix": "rules_lean-0.1.0",
   "url": "https://github.com/mattmarshall/rules_lean/archive/refs/tags/v0.1.0.tar.gz"
 }
