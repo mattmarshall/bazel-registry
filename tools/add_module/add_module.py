@@ -3,7 +3,7 @@
 
 Typical usage:
     tools/add_module/add_module.py \\
-        --repo mattmarshall/rules_lean \\
+        --repo fastverk/rules_lean \\
         --version 0.1.0
 
 The repo/version pair is resolved to the GitHub auto-generated tag tarball at
@@ -85,7 +85,7 @@ def upsert_metadata(metadata_path: Path, repo: str, version: str) -> None:
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--repo", help="GitHub repo as owner/name (e.g. mattmarshall/rules_lean)")
+    p.add_argument("--repo", help="GitHub repo as owner/name (e.g. fastverk/rules_lean)")
     p.add_argument("--version", required=True, help="Module version (e.g. 0.1.0)")
     p.add_argument("--name", help="Module name. Defaults to repo basename.")
     p.add_argument("--url", help="Override tarball URL (skips GitHub convention)")
