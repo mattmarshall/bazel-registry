@@ -79,8 +79,19 @@ def upsert_metadata(metadata_path: Path, repo: str, version: str) -> None:
         }
     if version not in meta["versions"]:
         meta["versions"].append(version)
-        meta["versions"].sort(key=lambda v: [int(p) for p in v.split(".")])
+        meta["versions"].sort(key=_version_sort_key)
     metadata_path.write_text(json.dumps(meta, indent=2) + "\n")
+
+
+def _version_sort_key(v: str) -> tuple:
+    """Semver-style sort key tolerating pre-release suffixes (`-rc1`, `-alpha`,
+    etc.). Pre-releases sort *before* their base release: `0.3.0-rc1` <
+    `0.3.0` < `0.3.1`."""
+    base, _, pre = v.partition("-")
+    base_parts = tuple(int(p) for p in base.split("."))
+    # `(0, pre)` for pre-releases sorts before `(1, "")` for the base release.
+    pre_marker = (0, pre) if pre else (1, "")
+    return base_parts + pre_marker
 
 
 def main() -> int:
