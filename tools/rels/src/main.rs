@@ -47,6 +47,7 @@ mod common;
 mod matrix;
 mod mcp;
 mod release;
+mod scaffold;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -93,6 +94,10 @@ enum Command {
     /// rules_* repos as semantic tools for AI clients.
     #[command(subcommand)]
     Mcp(mcp::McpCommand),
+
+    /// Bootstrap a new fastverk rules_* repo with the standard
+    /// MODULE.bazel + CI + CHANGELOG + .gitignore baseline.
+    Scaffold(scaffold::Args),
 }
 
 fn main() -> Result<()> {
@@ -104,5 +109,6 @@ fn main() -> Result<()> {
         Command::Bump(args) => bump::run(&env, args),
         Command::Matrix(args) => matrix::run(&env, args),
         Command::Mcp(cmd) => mcp::run(&env, cmd),
+        Command::Scaffold(args) => scaffold::run(&env, args),
     }
 }
