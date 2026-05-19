@@ -1,5 +1,5 @@
 load("@rels_crates//:defs.bzl", "all_crate_deps")
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -19,6 +19,12 @@ rust_binary(
     crate_root = "src/main.rs",
     edition = "2021",
     deps = all_crate_deps(normal = True),
+)
+
+rust_test(
+    name = "rels_test",
+    crate = ":rels",
+    edition = "2021",
 )
 
 exports_files([
