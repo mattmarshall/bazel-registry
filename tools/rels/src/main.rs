@@ -45,6 +45,7 @@ mod audit;
 mod bump;
 mod common;
 mod matrix;
+mod mcp;
 mod release;
 
 #[derive(Parser, Debug)]
@@ -87,6 +88,11 @@ enum Command {
 
     /// Emit a Markdown status table of every registered module.
     Matrix(matrix::Args),
+
+    /// MCP server over stdio — exposes the registry + sibling
+    /// rules_* repos as semantic tools for AI clients.
+    #[command(subcommand)]
+    Mcp(mcp::McpCommand),
 }
 
 fn main() -> Result<()> {
@@ -97,5 +103,6 @@ fn main() -> Result<()> {
         Command::Audit(args) => audit::run(&env, args),
         Command::Bump(args) => bump::run(&env, args),
         Command::Matrix(args) => matrix::run(&env, args),
+        Command::Mcp(cmd) => mcp::run(&env, cmd),
     }
 }

@@ -73,9 +73,61 @@ rels matrix > MATRIX.md
 
 ### `rels bump` — ripple a `bazel_dep` version pin
 
-**Stub** (v0.2). Will rewrite the version pin for a named module
-across every dependent repo and run `bazel test //...` in each.
-Tracked in the roadmap.
+Walks every sibling rules_* `MODULE.bazel` for a `bazel_dep(name =
+"<module>", ...)` call, rewrites the version pin to `--to <version>`,
+and (unless `--no-test`) runs `bazel test //...` per touched repo.
+Intentionally does **not** commit — operator reviews + commits per
+repo.
+
+```sh
+rels bump --module rules_jsonschema --to 0.2.0 --dry-run
+rels bump --module rules_jsonschema --to 0.2.0           # rewrites + runs tests
+rels bump --module rules_jsonschema --to 0.2.0 --no-test # rewrites only
+```
+
+### `rels mcp serve` — MCP server for AI tooling
+
+Starts a stdio MCP (Model Context Protocol) server that exposes the
+registry + sibling rules_* checkouts as semantic tools. Useful for
+Claude / any MCP client to answer questions about how to use the
+rules without grep'ing manually.
+
+Tools exposed in v0.1:
+
+- `list_modules` — every registered module + maintainer + version list.
+- `get_changelog` — read a module's CHANGELOG.md.
+- `get_stardoc` — list / read a module's `docs/*.md` files.
+- `search_symbols` — grep .bzl files for rule/macro/provider definitions.
+
+Register the server with Claude Desktop (or any MCP client) by
+adding to its config:
+
+```json
+{
+  "mcpServers": {
+    "fastverk-rules": {
+      "command": "bazel",
+      "args": ["run", "-q", "//tools/rels:rels", "--", "mcp", "serve"],
+      "cwd": "/absolute/path/to/bazel-registry"
+    }
+  }
+}
+```
+
+Or for the prebuilt binary:
+
+```json
+{
+  "mcpServers": {
+    "fastverk-rules": {
+      "command": "/abs/path/to/bazel-registry/bazel-bin/tools/rels/rels",
+      "args": ["--registry-root", "/abs/path/to/bazel-registry", "mcp", "serve"]
+    }
+  }
+}
+```
+
+Logs go to stderr; stdout is reserved for the JSON-RPC protocol.
 
 ## Conventions
 
