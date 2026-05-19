@@ -12,10 +12,6 @@ bazel_dep(name = "bazel_skylib", version = "1.8.2")
 # into them, exhaustively covering the spec (drift caught at typify
 # codegen time, not via a hand-mirrored allowlist).
 bazel_dep(name = "rules_jsonschema", version = "0.1.0")
-local_path_override(
-    module_name = "rules_jsonschema",
-    path = "../rules_jsonschema",
-)
 
 bazel_dep(name = "rules_rust", version = "0.70.0")
 
