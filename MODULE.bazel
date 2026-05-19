@@ -3,4 +3,26 @@ module(
     version = "0.0.0",
 )
 
-bazel_dep(name = "rules_python", version = "0.40.0")
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_rust", version = "0.70.0")
+
+# Toolchain pin matches every other fastverk rules_* repo: Rust
+# 1.95.0 stable.
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    versions = ["1.95.0"],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
+# Enumerate the dep graph for `rels` (tools/rels/) so it builds as
+# a real `rust_binary` instead of via a side-channel cargo invocation.
+crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
+crate.from_cargo(
+    name = "rels_crates",
+    cargo_lockfile = "//tools/rels:Cargo.lock",
+    manifests = ["//tools/rels:Cargo.toml"],
+)
+use_repo(crate, "rels_crates")

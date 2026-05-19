@@ -1,0 +1,63 @@
+name: nightly-audit
+
+on:
+  schedule:
+    # 03:30 UTC = 23:30 ET / 20:30 PT every night.
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout registry
+        uses: actions/checkout@v4
+
+      # Clone every fastverk rules_* repo as a sibling so `rels audit`
+      # can compare on-disk MODULE.bazel + tree state against the
+      # registry. The matrix below mirrors the modules registered
+      # today; new modules will need to be added here.
+      - name: checkout sibling rules_* repos
+        run: |
+          set -euo pipefail
+          mkdir -p ../siblings
+          cd ../siblings
+          for repo in \
+            rules_autoconf rules_bun rules_chrome rules_docker_compose \
+            rules_github rules_jsonschema rules_lean rules_mdbook \
+            rules_nextjs rules_openapi rules_postgres rules_storybook \
+            rules_uv rules_vite; do
+            git clone --depth 1 "https://github.com/fastverk/$repo.git" "$repo" \
+              || echo "skip: $repo (not found)"
+          done
+
+      - uses: bazel-contrib/setup-bazel@0.10.0
+        with:
+          bazelisk-cache: true
+          disk-cache: rels-${{ runner.os }}
+          repository-cache: true
+
+      # `rels` is built as a real rust_binary via rules_rust +
+      # crates_universe; using `bazel run` keeps the registry consistent
+      # with how every other fastverk tool ships.
+      - name: rels audit --markdown
+        run: |
+          bazel run //tools/rels:rels -- \
+            --registry-root . \
+            --workspaces-root ../siblings \
+            audit --markdown > audit-report.md \
+            || true   # always upload the report even if findings exist
+          cat audit-report.md
+
+      - name: upload audit-report
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: audit-report.md
+
+      - name: fail if findings reported
+        run: |
+          bazel run //tools/rels:rels -- \
+            --registry-root . \
+            --workspaces-root ../siblings \
+            audit --no-remote

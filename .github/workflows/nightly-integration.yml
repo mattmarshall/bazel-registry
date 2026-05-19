@@ -1,0 +1,41 @@
+name: nightly-integration
+
+on:
+  schedule:
+    # 04:30 UTC, an hour after the audit job so its findings aren't
+    # muddled with integration-test failures.
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  # One job per fastverk rules_* repo. Each clones HEAD and runs
+  # `bazel test //...`. Catches regressions before they ship —
+  # e.g. a rules_jsonschema breaking change that breaks
+  # rules_docker_compose's codegen.
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - rules_docker_compose
+          - rules_jsonschema
+          - rules_openapi
+          - rules_uv
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout ${{ matrix.repo }} HEAD
+        uses: actions/checkout@v4
+        with:
+          repository: fastverk/${{ matrix.repo }}
+          ref: main
+
+      - uses: bazel-contrib/setup-bazel@0.10.0
+        with:
+          bazelisk-cache: true
+          disk-cache: nightly-${{ matrix.os }}-${{ matrix.repo }}
+          repository-cache: true
+
+      - run: bazel test //... --test_output=errors

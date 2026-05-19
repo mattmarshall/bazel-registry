@@ -1,0 +1,4 @@
+package(default_visibility = ["//visibility:public"])
+
+# Marker for crate_universe + bazel-registry root discovery.
+exports_files(["MODULE.bazel"])

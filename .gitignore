@@ -3,3 +3,7 @@ bazel-*
 __pycache__/
 *.pyc
 .DS_Store
+.claude/
+MODULE.bazel.lock
+tools/rels/target/
+
