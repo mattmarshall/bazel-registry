@@ -7,3 +7,7 @@ __pycache__/
 MODULE.bazel.lock
 tools/rels/target/
 
+
+# IDE-generated rust-analyzer flycheck noise — was accidentally
+# tracked in pre-existing commits but shouldn't propagate.
+target/rust-analyzer/
