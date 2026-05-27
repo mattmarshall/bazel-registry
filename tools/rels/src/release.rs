@@ -142,7 +142,36 @@ fn repo_basename(repo: &str) -> Result<String> {
 }
 
 fn fetch(url: &str) -> Result<Vec<u8>> {
-    let resp = reqwest::blocking::get(url)
+    let client = reqwest::blocking::Client::builder()
+        // GitHub redirects archive tarball requests through codeload;
+        // reqwest must follow them and forward the auth header.
+        .redirect(reqwest::redirect::Policy::limited(10))
+        .build()
+        .context("build reqwest client")?;
+
+    let mut req = client.get(url);
+
+    // Forward a GitHub token if one is set in the environment so
+    // private-repo tarballs (e.g., fastverk/rules_lang) resolve.
+    // Tries GITHUB_TOKEN first (CI conventional), then GH_TOKEN
+    // (gh-cli conventional), then falls back to `gh auth token`
+    // shell-out so interactive users with gh installed but no env
+    // var still work.
+    let host_is_github = url.starts_with("https://github.com/")
+        || url.starts_with("https://api.github.com/")
+        || url.starts_with("https://codeload.github.com/");
+    if host_is_github {
+        if let Some(tok) = github_token() {
+            req = req.bearer_auth(tok);
+            // GitHub's archive endpoint accepts the standard
+            // Accept: application/vnd.github+json header but doesn't
+            // require it for tarball downloads. Leave default Accept.
+            req = req.header("User-Agent", "fastverk-rels/0.1");
+        }
+    }
+
+    let resp = req
+        .send()
         .with_context(|| format!("GET {}", url))?
         .error_for_status()
         .with_context(|| format!("HTTP {}", url))?;
@@ -150,6 +179,33 @@ fn fetch(url: &str) -> Result<Vec<u8>> {
         .bytes()
         .with_context(|| format!("read body from {}", url))?;
     Ok(bytes.to_vec())
+}
+
+fn github_token() -> Option<String> {
+    if let Ok(t) = std::env::var("GITHUB_TOKEN") {
+        if !t.is_empty() {
+            return Some(t);
+        }
+    }
+    if let Ok(t) = std::env::var("GH_TOKEN") {
+        if !t.is_empty() {
+            return Some(t);
+        }
+    }
+    // Last-resort: shell out to `gh auth token`. This is only used by
+    // interactive users; CI should set GITHUB_TOKEN explicitly.
+    if let Ok(out) = std::process::Command::new("gh")
+        .args(["auth", "token"])
+        .output()
+    {
+        if out.status.success() {
+            let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            if !s.is_empty() {
+                return Some(s);
+            }
+        }
+    }
+    None
 }
 
 fn sri_integrity(data: &[u8]) -> String {
