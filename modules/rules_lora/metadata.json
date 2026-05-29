@@ -10,7 +10,8 @@
     "github:fastverk/rules_lora"
   ],
   "versions": [
-    "0.0.32"
+    "0.0.32",
+    "0.0.33"
   ],
   "yanked_versions": {}
 }
