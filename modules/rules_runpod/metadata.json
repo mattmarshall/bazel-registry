@@ -10,7 +10,8 @@
     "github:fastverk/rules_runpod"
   ],
   "versions": [
-    "0.0.8"
+    "0.0.8",
+    "0.0.9"
   ],
   "yanked_versions": {}
 }
